@@ -37,11 +37,10 @@ class Logic:
     def setValue(self, cells, index, value):
         # is it allowed to set the value at the index?
         if self.isAllowedToSet(cells, index, value):
-            # set the value, making it the only possible candidate
+            # set the value, making it the only possible candidate and remove the value from all neighbour cells
             cells[index] = value
-            # remove the value from all neighbour cells and find any hidden singles
             cells = self.removeFromNeighbours(cells, index, value)
-            cells = self.findHiddenSingle(cells, index)
+            # searching for hidden singles here would improve the number of tracks, but increase computing time significantly
         return cells
 
     # iterate through all neighbour cells and remove the candidate by blanking it
@@ -53,13 +52,15 @@ class Logic:
                 cells[neighbour] = cells[neighbour].replace(value, "")
                 # if there's only one value left as a candidate, it must be the value - set it later
                 if len(cells[neighbour]) == 1: newSingles.append(neighbour)
-        # set values for cells that had all candidates removed and now have only a single candidate left
+        # set known value for cells that had all candidates removed and now have only a single candidate left
         for newSingle in newSingles: cells = self.setValue(cells, newSingle, cells[newSingle])
         return cells
 
-    # find hidden singles wrapper - search for row, column and block
-    def findHiddenSingle(self, cells, index):
-        for cacheType in ["row", "column", "block"]: cells = self.findHiddenSingleSearch(cells, index, cacheType)
+    # find hidden singles wrapper - search for row, column and block in all cells
+    def findHiddenSingles(self, cells):
+        for i in range(81):
+            if (len(cells[i]) > 1):
+                for cacheType in ["row", "column", "block"]: cells = self.findHiddenSingleSearch(cells, i, cacheType)
         return cells
 
     # find hidden singles - if a value only appears once per row, column or block it must be the actual value
@@ -80,8 +81,8 @@ class Logic:
 
     # is it allowed to set a certain value at a certain index in the sudoku?
     def isAllowedToSet(self, cells, index, value):
-        # return true if the 1) value is a candidate AND 2) the value is not already set in any neighbour cell with a known value (candidate length == 1)
-        return (value in cells[index]) and all((value not in cells[neighbour]) for neighbour in self.neighbourCache[index]["all"] if len(cells[neighbour]) == 1)
+        # return true if the 1) value is a candidate AND 2) the value is not already set in any neighbour cell
+        return (value in cells[index]) and all(value != cells[neighbour] for neighbour in self.neighbourCache[index]["all"])
 
     # is there a contradiction in the sudoku, e.g. empty cells or duplicate known values?
     def hasContradiction(self, cells):
@@ -98,6 +99,11 @@ class Logic:
 
     # recursive backtracking function
     def solveSudoku(self, cells):
+        # before doing anything, resolve any hidden singles
+        tempcells = list()
+        while cells != tempcells:
+            cells = self.findHiddenSingles(cells)
+            tempcells = cells
         # if there's a contradiction return False - something's wrong with the solution
         if self.hasContradiction(cells): return False
         # if all cells only have one candidate left, the puzzle is solved
