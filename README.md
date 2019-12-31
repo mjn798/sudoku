@@ -34,21 +34,21 @@ The output.csv file is overwritten with each run.
 
 ### Backtracking
 
-Find the first empty field and set a valid number (1-9).
-If that's allowed, continue with the next number in the next empty field and so on.
-In case a field cannot hold any number due to row, column and block constraints, revert to a previous state (reset the field to .), go back one field and continue with the next possible number.
-When all fields are filled with valid numbers, the Sudoku must be solved.
+* Find the first empty field and set a valid number (1-9).
+* If that's allowed, continue with the next number in the next empty field and so on.
+* In case a field cannot hold any number due to row, column and block constraints, revert to a previous state (reset the field to .), go back one field and continue with the next possible number.
+* When all fields are filled with valid numbers, the Sudoku must be solved.
 
 ### Logic
 
-Build a cache for getting any field's neighbours instead of calculating them each time.
-
-Fill all fields with potential candidate numbers (1-9).
-If a known value is set, remove the value from all the neighbour fields in the row, column and block.
-If there's only one single candidate left for a field, this must be the field's known value - so set it.
-If there's only one single occurance for a candidate per row, column or block, it must be the known value for this field - so set it.
-Once all potential candidates are removed and all Hidden Singles are found, start a backtracking algorithm as explained above.
-When all fields are filled with valid numbers, the Sudoku must be solved.
+* Build a cache for getting any field's neighbours instead of calculating them each time.
+* Fill all fields with potential candidate numbers (1-9).
+* If a known value is set, remove the value from all the neighbour fields in the row, column and block.
+* If there's only one single candidate left for a field, this must be the field's known value - so set it ("naked single").
+* If there's only one single occurance for a candidate per row, column or block, it must be the known value for this field - so set it ("hidden single).
+* If there's an exact pair of candidates per row, column or block the two values can only be in these fields - remove the two numbers from the rest of the potential candidates ("naked pair").
+* Once all potential candidates are removed and all Hidden Singles are found, start a backtracking algorithm as explained above.
+* When all fields are filled with valid numbers, the Sudoku must be solved.
 
 ## Tracks
 
